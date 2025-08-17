@@ -1052,6 +1052,19 @@ class WatchlistItem(db.Model):
     
     user = db.relationship('User', backref=db.backref('watchlist', lazy=True))
 
+    @classmethod
+    def remove_from_watchlist(cls, user_id, item_id, item_type):
+        item = cls.query.filter_by(
+            user_id=user_id,
+            item_id=item_id,
+            item_type=item_type
+        ).first()
+        if item:
+            db.session.delete(item)
+            db.session.commit()
+            return True
+        return False
+
 @app.route('/add_to_watchlist', methods=['POST'])
 @login_required
 def add_to_watchlist():
@@ -1089,6 +1102,31 @@ def add_to_watchlist():
 def watchlist():
     items = WatchlistItem.query.filter_by(user_id=current_user.id).order_by(WatchlistItem.added_on.desc()).all()
     return render_template('watchlist.html', items=items, img_url=TMDB_IMAGE_URL)
+
+@app.route('/remove_from_watchlist', methods=['POST'])
+@login_required
+def remove_from_watchlist():
+    if not current_user.is_authenticated:
+        return jsonify({'success': False, 'message': 'Not authenticated'}), 401
+
+    data = request.get_json()
+    watchlist_item_id = data.get('watchlist_item_id')
+    
+    if not watchlist_item_id:
+        return jsonify({'success': False, 'message': 'Missing item ID'}), 400
+    
+    # Find the item by its database ID and ensure it belongs to the current user
+    item = WatchlistItem.query.filter_by(
+        id=watchlist_item_id,
+        user_id=current_user.id
+    ).first()
+    
+    if item:
+        db.session.delete(item)
+        db.session.commit()
+        return jsonify({'success': True})
+    
+    return jsonify({'success': False, 'message': 'Item not found'}), 404
 
 if __name__ == '__main__':
     app.run(debug=True)

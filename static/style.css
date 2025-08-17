@@ -29,6 +29,10 @@ html {
   scroll-behavior: smooth;
 }
 
+.d0{
+  color: var(--text-color);
+}
+
 body {
   background-color: var(--bg-color);
   color: var(--text-color);

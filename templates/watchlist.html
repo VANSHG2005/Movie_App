@@ -6,9 +6,9 @@
     
     {% if not items %}
     <div class="empty-watchlist">
-        <i class="fas fa-bookmark fa-4x mb-3"></i>
-        <h3>Your watchlist is empty</h3>
-        <p>Start adding movies and TV shows to your watchlist!</p>
+        <i class="fas fa-bookmark fa-4x mb-3 d0"></i>
+        <h3 class="d0">Your watchlist is empty</h3>
+        <p class="d0">Start adding movies and TV shows to your watchlist!</p>
     </div>
     {% else %}
     <div class="row">
@@ -30,7 +30,9 @@
                         <span class="badge bg-{% if item.item_type == 'movie' %}primary{% else %}success{% endif %}">
                             {{ item.item_type|upper }}
                         </span>
-                        <button class="btn btn-sm btn-danger remove-btn" onclick="removeFromWatchlist({{ item.id }})">
+                        <button class="btn btn-sm btn-danger remove-btn" 
+                                data-item-id="{{ item.id }}"
+                                onclick="removeFromWatchlist(this)">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
@@ -42,8 +44,21 @@
     {% endif %}
 </div>
 
+<!-- Toast Notification -->
+<div id="watchlistToast" class="toast bg-body" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="toast-header bg-body">
+        <strong class="me-auto">Watchlist</strong>
+        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+    <div class="toast-body bg-body">
+        <span id="toastMessage"></span>
+    </div>
+</div>
+
 <script>
-function removeFromWatchlist(itemId) {
+function removeFromWatchlist(button) {
+    const itemId = button.dataset.itemId;
+    
     if (confirm('Are you sure you want to remove this from your watchlist?')) {
         fetch('/remove_from_watchlist', {
             method: 'POST',
@@ -51,20 +66,36 @@ function removeFromWatchlist(itemId) {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                item_id: itemId
+                watchlist_item_id: itemId  // Changed from item_id to watchlist_item_id
             })
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) throw new Error('Network response was not ok');
+            return response.json();
+        })
         .then(data => {
             if (data.success) {
-                location.reload(); // Refresh the page
+                // Show toast notification
+                const toast = new bootstrap.Toast(document.getElementById('watchlistToast'));
+                document.getElementById('toastMessage').textContent = 'Item removed successfully';
+                toast.show();
+                
+                // Remove item from DOM after delay
+                setTimeout(() => {
+                    button.closest('.col-md-3').remove();
+                    
+                    // Reload if last item
+                    if (document.querySelectorAll('.watchlist-card').length === 0) {
+                        location.reload();
+                    }
+                }, 500);
             } else {
-                alert(data.message || 'Error removing from watchlist');
+                throw new Error(data.message || 'Failed to remove item');
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Error removing from watchlist');
+            alert(error.message);
         });
     }
 }
@@ -131,12 +162,42 @@ function removeFromWatchlist(itemId) {
 
 .remove-btn {
     padding: 0.1rem 0.4rem;
+    transition: all 0.2s;
+}
+
+.remove-btn:hover {
+    transform: scale(1.1);
 }
 
 @media (max-width: 768px) {
     .watchlist-title {
         font-size: 0.9rem;
     }
+    
+    .watchlist-actions {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.3rem;
+    }
+}
+
+/* Alternative if not using Bootstrap's dark mode */
+.toast {
+    background-color: var(--toast-bg, #fff) !important;
+    color: var(--toast-color, #000) !important;
+}
+
+.toast-header {
+    background-color: var(--toast-bg, #fff) !important;
+    color: var(--toast-color, #000) !important;
+    border-bottom-color: var(--toast-border, #dee2e6) !important;
+}
+
+/* Then in your dark theme CSS */
+[data-bs-theme="dark"] .toast {
+    --toast-bg: #000;
+    --toast-color: #fff;
+    --toast-border: #444;
 }
 </style>
 {% endblock %}

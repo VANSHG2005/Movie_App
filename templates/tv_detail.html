@@ -40,9 +40,10 @@
             
             <!-- In tv_detail.html, inside the action-buttons div -->
             {% if current_user.is_authenticated %}
-            <button class="btn btn-watchlist" onclick="addToWatchlist({{ tv.show.id }}, 'tv', '{{ tv.show.name }}', '{{ tv.show.poster_path }}')">
+            <button class="btn btn-watchlist" onclick="addToWatchlist('{{tv.show.id }}' , 'tv', '{{ tv.show.name }}', '{{ tv.show.poster_path }}')">
               <i class="fas fa-bookmark"></i> Add to Watchlist
             </button>
+
             {% else %}
             <a href="{{ url_for('login') }}" class="btn btn-watchlist">
               <i class="fas fa-bookmark"></i> Log in to Add

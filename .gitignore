@@ -5,3 +5,4 @@ model/tmdb_tv_similarity.pkl
 _pycache_
 instance
 migrations
+.gitattributes
