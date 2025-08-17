@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Error</title>
+</head>
+<body>
+    <h1>{{ message }}</h1>
+    {% if error %}
+        <p>Error details: {{ error }}</p>
+    {% endif %}
+    <a href="{{ url_for('index') }}">Return to Home</a>
+</body>
+</html>

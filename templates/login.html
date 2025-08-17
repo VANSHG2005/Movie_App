@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="head2 text-center">Log In</h3>
+                </div>
+                <div class="card-body">
+                    {% if error %}
+                    <div class="alert alert-danger">{{ error }}</div>
+                    {% endif %}
+                    
+                    <form method="POST" action="{{ url_for('login') }}">
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email address</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                        <div class="d3">
+                            <button type="submit" class="btn btn-primary w-10 d2">Log In</button>
+                        </div>
+                        
+                    </form>
+                    
+                    <div class="mt-3 text-center">
+                        <p>Don't have an account? <a href="{{ url_for('signup') }}">Sign up</a></p>
+                        <hr>
+                        <p>Or log in with:</p>
+                        <div class="d3">
+                            <button class="google-btn d3" onclick="handleGoogleAuth()">
+                            <i class="fab fa-google google-icon"></i>
+                            Google
+                        </button>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .head2{
+        color: black;
+    }
+    /* .d2{
+        width: 20%;
+    } */
+    .d3{
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+</style>
+{% endblock %}

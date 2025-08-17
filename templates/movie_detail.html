@@ -1,0 +1,992 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="movie-detail-container">
+  <!-- Hero Section with Backdrop -->
+  <div class="movie-hero" style="background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('{{ img_url }}{{ movie.details.backdrop_path }}');">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-4">
+          <img src="{{ img_url }}{{ movie.details.poster_path }}" class="movie-poster" alt="{{ movie.details.title }}">
+        </div>
+        <div class="col-md-8 movie-info">
+          <h1 class="movie-title">{{ movie.details.title }} <span class="release-year">({{ movie.details.release_date[:4] }})</span></h1>
+          
+          <div class="movie-meta">
+            <span class="release-date">{{ movie.details.release_date }}</span>
+            <span class="separator">•</span>
+            <span class="genres">
+              {% for genre in movie.details.genres %}
+                {{ genre }}{% if not loop.last %}, {% endif %}
+              {% endfor %}
+            </span>
+            <span class="separator">•</span>
+            <span class="runtime">{{ movie.details.runtime }}m</span>
+          </div>
+          
+          <div class="user-score">
+            <div class="score-circle">
+              <span class="score">{{ (movie.details.vote_average * 10)|int }}%</span>
+            </div>
+            <span class="score-label">User Score</span>
+          </div>
+          
+          <div class="action-buttons">
+            {% if movie.trailer_key %}
+            <button class="btn btn-trailer" data-bs-toggle="modal" data-bs-target="#trailerModal">
+              <i class="fas fa-play"></i> Play Trailer
+            </button>
+            {% endif %}
+
+            <!-- In movie_detail.html, inside the action-buttons div -->
+            {% if current_user.is_authenticated %}
+            <button class="btn btn-watchlist" onclick="addToWatchlist({{ movie.details.id }}, 'movie', '{{ movie.details.title }}', '{{ movie.details.poster_path }}')">
+              <i class="fas fa-bookmark"></i> Add to Watchlist
+            </button>
+            {% else %}
+            <a href="{{ url_for('login') }}" class="btn btn-watchlist">
+              <i class="fas fa-bookmark"></i> Log in to Add
+            </a>
+            {% endif %}
+            
+            {% if movie.streaming_providers and movie.streaming_providers.flatrate %}
+            <a href="{{ movie.streaming_providers.link }}" class="btn btn-stream" target="_blank">
+              <i class="fas fa-tv"></i> Watch on {{ movie.streaming_providers.flatrate[0].provider_name }}
+            </a>
+            {% elif movie.streaming_providers and movie.streaming_providers.buy %}
+            <a href="{{ movie.streaming_providers.link }}" class="btn btn-stream" target="_blank">
+              <i class="fas fa-shopping-cart"></i> Rent/Buy
+            </a>
+            {% endif %}
+          </div>
+          
+          {% if movie.details.tagline %}
+          <p class="tagline"><em>"{{ movie.details.tagline }}"</em></p>
+          {% endif %}
+          
+          <h3 class="section-title">Overview</h3>
+          <p class="overview">{{ movie.details.overview }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+
+  <div class="container">
+    <!-- Cast Section -->
+    {% if movie.cast %} 
+<div class="cast-section">
+  <h2 class="section-header">Top Billed Cast</h2>
+  <div class="cast-scroller">
+    {% for actor in movie.cast %}
+    {% if actor.id %}
+    <a href="{{ url_for('person_detail', person_id=actor.id) }}" class="cast-card-link">
+      <div class="cast-card">
+        <div class="cast-img-container">
+          {% if actor.profile_path %}
+          <img src="{{ img_url }}{{ actor.profile_path }}" alt="{{ actor.name }}" class="cast-img">
+          {% else %}
+          <div class="no-image-placeholder">
+            <i class="fas fa-user"></i>
+          </div>
+          {% endif %}
+        </div>
+        <div class="cast-info">
+          <p class="cast-name">{{ actor.name }}</p>
+          <p class="cast-character">{{ actor.character or 'N/A' }}</p>
+        </div>
+      </div>
+    </a>
+    {% endif %}
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+
+{% if movie.crew %}
+<div class="crew-section">
+  <h2 class="section-header">Key Crew</h2>
+  <div class="crew-scroller">
+    {% for member in movie.crew %}
+    {% if member.id %}
+    <a href="{{ url_for('person_detail', person_id=member.id) }}" class="crew-card-link">
+      <div class="crew-card">
+        <div class="crew-img-container">
+          {% if member.profile_path %}
+          <img src="{{ img_url }}{{ member.profile_path }}" alt="{{ member.name }}" class="crew-img">
+          {% else %}
+          <div class="no-image-placeholder">
+            <i class="fas fa-user-tie"></i>
+          </div>
+          {% endif %}
+        </div>
+        <div class="crew-info">
+          <p class="crew-name">{{ member.name }}</p>
+          <p class="crew-job">{{ member.job }}</p>
+        </div>
+      </div>
+    </a>
+    {% endif %}
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+    <!-- Related Movies Section -->
+    {% if movie.related_movies %}
+    <div class="related-movies">
+      <h2 class="section-header">More from this Franchise</h2>
+      <div class="row">
+        {% for related in movie.related_movies[:6] %}
+        <div class="col-md-2 col-sm-4 col-6 mb-4">
+          <div class="movie-card">
+            <a href="{{ url_for('movie_detail', movie_id=related.id) }}">
+              {% if related.poster_path %}
+              <img src="{{ img_url }}{{ related.poster_path }}" class="poster-img" alt="{{ related.title }}">
+              {% else %}
+              <img src="{{ url_for('static', filename='images/default-poster.png') }}" class="poster-img" alt="{{ related.title }}">
+              {% endif %}
+            </a>
+            <small class="movie-title-small">{{ related.title }}</small>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Similar Movies Section
+    {% if movie.similar_movies %}
+    <div class="similar-movies">
+      <h2 class="section-header">Similar Movies</h2>
+      <div class="row">
+        {% for similar in movie.similar_movies[:6] %}
+        <div class="col-md-2 col-sm-4 col-6 mb-4">
+          <div class="movie-card">
+            <a href="{{ url_for('movie_detail', movie_id=similar.id) }}">
+              {% if similar.poster_path %}
+              <img src="{{ img_url }}{{ similar.poster_path }}" class="poster-img" alt="{{ similar.title }}">
+              {% else %}
+              <img src="{{ url_for('static', filename='images/default-poster.png') }}" class="poster-img" alt="{{ similar.title }}">
+              {% endif %}
+            </a>
+            <small class="movie-title-small">{{ similar.title }}</small>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %} -->
+
+    {% if movie.ml_recommendations %}
+<div class="similar-movies">
+  <h2 class="section-header">Similar Movies</h2>
+  <div class="similar-scroller">
+    {% for similar in movie.ml_recommendations %}
+    <div class="similar-card">
+      <div class="movie-card">
+        <a href="{{ url_for('movie_detail', movie_id=similar.id) }}">
+          {% if similar.poster_path %}
+          <img src="{{ img_url }}{{ similar.poster_path }}" class="poster-img" alt="{{ similar.title }}">
+          {% else %}
+          <img src="{{ url_for('static', filename='images/default-poster.png') }}" class="poster-img" alt="{{ similar.title }}">
+          {% endif %}
+        </a>
+        <small class="movie-title-small">{{ similar.title }}</small>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+    <!-- Trailer Modal -->
+    {% if movie.trailer_key %}
+    <div class="modal fade" id="trailerModal" tabindex="-1" aria-labelledby="trailerModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="trailerModalLabel">{{ movie.details.title }} - Official Trailer</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="stopTrailer()"></button>
+          </div>
+          <div class="modal-body p-0">
+            <div class="ratio ratio-16x9">
+              <iframe id="trailerIframe" src="https://www.youtube.com/embed/{{ movie.trailer_key }}?enablejsapi=1" allowfullscreen allow="autoplay"></iframe>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="streaming-section mt-4">
+      <button id="showStreamingBtn" class="btn btn-primary">
+        <i class="fas fa-tv"></i> Show Streaming Options
+      </button>
+      
+      <div id="streamingProviders" class="mt-3" style="display: none;">
+        {% if movie.streaming_providers %}
+          <h3 class="section-header">Available On</h3>
+          <div class="streaming-options">
+            {% if movie.streaming_providers.flatrate %}
+              <h4>Subscription Services</h4>
+              <div class="providers-grid">
+                {% for provider in movie.streaming_providers.flatrate %}
+                  <a href="{{ movie.streaming_providers.link }}" target="_blank" class="provider-card">
+                    {% if provider.logo_path %}
+                      <img src="{{ img_url }}{{ provider.logo_path }}" alt="{{ provider.provider_name }}" class="provider-logo">
+                    {% else %}
+                      <div class="provider-name">{{ provider.provider_name }}</div>
+                    {% endif %}
+                  </a>
+                {% endfor %}
+              </div>
+            {% endif %}
+            
+            {% if movie.streaming_providers.buy %}
+              <h4>Purchase Options</h4>
+              <div class="providers-grid">
+                {% for provider in movie.streaming_providers.buy %}
+                  <a href="{{ movie.streaming_providers.link }}" target="_blank" class="provider-card">
+                    {% if provider.logo_path %}
+                      <img src="{{ img_url }}{{ provider.logo_path }}" alt="{{ provider.provider_name }}" class="provider-logo">
+                    {% else %}
+                      <div class="provider-name">{{ provider.provider_name }}</div>
+                    {% endif %}
+                  </a>
+                {% endfor %}
+              </div>
+            {% endif %}
+            
+            {% if movie.streaming_providers.rent %}
+              <h4>Rental Options</h4>
+              <div class="providers-grid">
+                {% for provider in movie.streaming_providers.rent %}
+                  <a href="{{ movie.streaming_providers.link }}" target="_blank" class="provider-card">
+                    {% if provider.logo_path %}
+                      <img src="{{ img_url }}{{ provider.logo_path }}" alt="{{ provider.provider_name }}" class="provider-logo">
+                    {% else %}
+                      <div class="provider-name">{{ provider.provider_name }}</div>
+                    {% endif %}
+                  </a>
+                {% endfor %}
+              </div>
+            {% endif %}
+            
+            <div class="region-info">
+              <small>Showing providers for: {{ movie.streaming_providers.region }}</small>
+            </div>
+          </div>
+        {% else %}
+          <div class="no-providers">
+            <p>No streaming options found for this movie in your region.</p>
+             <!-- Manual OTT check for known Indian platforms -->
+            <div class="manual-ott-check">
+              <h4>Check on popular Indian platforms:</h4>
+              <div class="ott-buttons">
+                <a href="https://www.hotstar.com/in/search?q={{ movie.details.title }}" 
+                  target="_blank" class="btn btn-ott hotstar">
+                  Disney+ Hotstar
+                </a>
+                <a href="https://www.primevideo.com/search/ref=atv_nb_sr?phrase={{ movie.details.title }}" 
+                  target="_blank" class="btn btn-ott prime">
+                  Amazon Prime
+                </a>
+                <a href="https://www.netflix.com/search?q={{ movie.details.title }}" 
+                  target="_blank" class="btn btn-ott netflix">
+                  Netflix
+                </a>
+                <a href="https://www.zee5.com/search?q={{ movie.details.title }}" 
+                  target="_blank" class="btn btn-ott zee5">
+                  ZEE5
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+            {% endif %}
+      </div>
+    </div>
+
+    <script>
+      function stopTrailer() {
+        const iframe = document.getElementById('trailerIframe');
+        if (iframe) {
+          iframe.src = iframe.src.replace('autoplay=1', 'autoplay=0');
+        }
+      }
+
+      document.addEventListener('DOMContentLoaded', function() {
+        const modal = document.getElementById('trailerModal');
+        if (modal) {
+          modal.addEventListener('hidden.bs.modal', function() {
+            stopTrailer();
+          });
+        }
+      });
+
+      document.addEventListener('DOMContentLoaded', function() {
+    const showStreamingBtn = document.getElementById('showStreamingBtn');
+    const streamingProviders = document.getElementById('streamingProviders');
+    const tryOtherRegionsBtn = document.getElementById('tryOtherRegionsBtn');
+    
+    // Toggle streaming providers visibility
+    showStreamingBtn.addEventListener('click', function() {
+      streamingProviders.style.display = streamingProviders.style.display === 'none' ? 'block' : 'none';
+    });
+    
+    // Handle try other regions button
+    if (tryOtherRegionsBtn) {
+      tryOtherRegionsBtn.addEventListener('click', function() {
+        fetch(`/movie/{{ movie.details.id }}/refresh_providers?region=US`)
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              location.reload();
+            }
+          });
+      });
+    }
+  });
+
+function addToWatchlist(itemId, itemType, title, posterPath) {
+    fetch('/add_to_watchlist', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            item_id: itemId,
+            item_type: itemType,
+            title: title,
+            poster_path: posterPath
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Added to your watchlist!');
+        } else {
+            alert(data.message || 'Error adding to watchlist');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error adding to watchlist');
+    });
+}
+
+</script>
+    {% endif %}
+  </div>
+</div>
+
+<style>
+  :root {
+    /* Light theme */
+    --bg-color: #ffffff;
+    --text-color: #333333;
+    --accent-color: #e63946;
+    --secondary-color: #6c757d;
+    --card-bg: #f8f9fa;
+    --card-text: #212529;
+    --border-color: #dee2e6;
+    --score-bg: #081c22;
+    --score-border: #21d07a;
+    --modal-bg: #ffffff;
+    --modal-border: #dee2e6;
+    --btn-trailer-bg: #e50914;
+    --btn-trailer-hover: #b2070f;
+  }
+
+  [data-theme="dark"] {
+    /* Dark theme */
+    --bg-color: #121212;
+    --text-color: #f8f9fa;
+    --accent-color: #ff6b6b;
+    --secondary-color: #adb5bd;
+    --card-bg: #1e1e1e;
+    --card-text: #f8f9fa;
+    --border-color: #343a40;
+    --score-bg: #0d2b36;
+    --score-border: #2ecc71;
+    --modal-bg: #1a1a1a;
+    --modal-border: #343a40;
+    --btn-trailer-bg: #ff4757;
+    --btn-trailer-hover: #ff6b81;
+  }
+
+  /* Base styles */
+  .movie-detail-container {
+    color: var(--text-color);
+    background-color: var(--bg-color);
+    min-height: 100vh;
+  }
+
+  /* Hero section */
+  .movie-hero {
+    padding: 3rem 0;
+    background-size: cover;
+    background-position: center;
+    color: white; /* Keep text white on dark background */
+  }
+
+  .movie-poster {
+    width: 100%;
+    border-radius: 10px;
+    transition: transform 0.3s ease;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  }
+
+  .movie-poster:hover {
+    transform: scale(1.03);
+  }
+
+  .movie-info {
+    padding-left: 2rem;
+  }
+
+  .movie-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: white; /* Keep title white on dark background */
+  }
+
+  .release-year {
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 400;
+  }
+
+  .movie-meta {
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 1.5rem;
+  }
+
+  .separator {
+    margin: 0 0.5rem;
+  }
+
+  /* User score */
+  .user-score {
+    display: flex;
+    align-items: center;
+    margin: 1.5rem 0;
+  }
+
+  .score-circle {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: var(--score-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid var(--score-border);
+  }
+
+  .score {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: white;
+  }
+
+  .score-label {
+    margin-left: 1rem;
+    font-size: 1rem;
+    color: white;
+  }
+
+  .tagline {
+    font-style: italic;
+    color: rgba(255, 255, 255, 0.8);
+    margin: 1rem 0;
+  }
+
+  .overview {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    margin-bottom: 2rem;
+    color: white;
+  }
+
+  /* Sections */
+  .section-header {
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--accent-color);
+    color: var(--text-color);
+  }
+
+  /* Cast and crew scrollers */
+  .cast-scroller, .crew-scroller {
+    display: flex;
+    overflow-x: auto;
+    gap: 1rem;
+    padding-bottom: 1rem;
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent-color) var(--bg-color);
+  }
+
+  .cast-scroller::-webkit-scrollbar, .crew-scroller::-webkit-scrollbar {
+    height: 8px;
+  }
+
+  .cast-scroller::-webkit-scrollbar-track, .crew-scroller::-webkit-scrollbar-track {
+    background: var(--bg-color);
+  }
+
+  .cast-scroller::-webkit-scrollbar-thumb, .crew-scroller::-webkit-scrollbar-thumb {
+    background-color: var(--accent-color);
+    border-radius: 20px;
+  }
+
+  .cast-card {
+  min-width: 140px;
+  width: 140px;
+  background: var(--card-bg);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: transform 0.3s ease;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100%; /* Ensure all cards take full height */
+}
+
+.cast-img-container {
+  width: 100%;
+  height: 175px;
+  position: relative;
+  background-color: #f0f0f0;
+  flex-shrink: 0; /* Prevent image container from shrinking */
+}
+
+.cast-info {
+  padding: 0.8rem;
+  min-height: 80px;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1; /* Allow info section to grow and fill space */
+}
+
+.cast-name {
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+  color: var(--card-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%; /* Ensure name takes full width */
+}
+
+.cast-character {
+  font-size: 0.9rem;
+  color: var(--secondary-color);
+  display: -webkit-box;
+  /* -webkit-line-clamp: 2; */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-height: 2.8em;
+  line-height: 1.4em;
+  width: 100%; /* Ensure character takes full width */
+  flex-grow: 1; /* Push content to top */
+}
+
+  /* Cards */
+/* Cast and Crew Cards */
+.cast-card, .crew-card {
+  min-width: 140px;
+  width: 140px;
+  background: var(--card-bg);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: transform 0.3s ease;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+
+.cast-img-container, .crew-img-container {
+  width: 100%;
+  height: 175px;
+  position: relative;
+  background-color: #f0f0f0;
+}
+
+[data-theme="dark"] .cast-img-container, 
+[data-theme="dark"] .crew-img-container {
+  background-color: #2a2a2a;
+}
+
+.cast-img, .crew-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.no-image-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  font-size: 2.5rem;
+}
+
+[data-theme="dark"] .no-image-placeholder {
+  color: #555;
+}
+
+.cast-info, .crew-info {
+  padding: 0.8rem;
+  min-height: 80px;
+}
+
+.cast-name, .crew-name {
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+  color: var(--card-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cast-character, .crew-job {
+  font-size: 0.9rem;
+  color: var(--secondary-color);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  /* Fallback for non-WebKit browsers */
+  max-height: 2.8em; /* Approximate height for 2 lines */
+  line-height: 1.4em;
+  /* Modern standard property */
+  display: -moz-box;
+  -moz-box-orient: vertical;
+  -moz-line-clamp: 2;
+  display: box;
+  box-orient: vertical;
+  line-clamp: 2;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .cast-card, .crew-card {
+    min-width: 120px;
+    width: 120px;
+  }
+  
+  .cast-img-container, .crew-img-container {
+    height: 150px;
+  }
+  
+  .no-image-placeholder {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .cast-card, .crew-card {
+    min-width: 100px;
+    width: 100px;
+  }
+  
+  .cast-img-container, .crew-img-container {
+    height: 130px;
+  }
+  
+  .no-image-placeholder {
+    font-size: 1.5rem;
+  }
+  
+  .cast-info, .crew-info {
+    padding: 0.5rem;
+    min-height: 70px;
+  }
+}
+  /* Card links */
+  .cast-card-link, .crew-card-link {
+    text-decoration: none;
+    color: inherit;
+  }
+
+  /* Trailer button */
+  .btn-trailer {
+    background-color: var(--btn-trailer-bg);
+    color: white;
+    padding: 0.5rem 1.5rem;
+    border-radius: 5px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border: none;
+    margin: 1rem 0;
+  }
+
+  .btn-trailer:hover {
+    background-color: var(--btn-trailer-hover);
+    color: white;
+    transform: translateY(-2px);
+  }
+
+  /* Related and similar movies */
+  .related-movies, .similar-movies {
+    margin: 3rem 0;
+  }
+
+  .movie-card {
+    transition: transform 0.3s ease;
+  }
+
+  .movie-card:hover {
+    transform: translateY(-5px);
+  }
+
+  .poster-img {
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+    border-radius: 8px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .movie-card:hover .poster-img {
+    transform: scale(1.05);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+  }
+
+  .movie-title-small {
+    display: block;
+    margin-top: 0.5rem;
+    text-align: center;
+    color: var(--text-color);
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Modal styles */
+  .modal-content {
+    background-color: var(--modal-bg) !important;
+    color: var(--text-color);
+    border: 1px solid var(--modal-border) !important;
+  }
+
+  .modal-header {
+    border-bottom: 1px solid var(--border-color) !important;
+  }
+
+  .modal-title {
+    color: var(--text-color);
+  }
+
+  .btn-close {
+    filter: var(--btn-close-filter, none);
+  }
+
+  [data-theme="dark"] .btn-close {
+    filter: invert(1);
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .movie-hero {
+      padding: 2rem 0;
+    }
+    
+    .movie-info {
+      padding-left: 0;
+      margin-top: 1.5rem;
+    }
+    
+    .movie-title {
+      font-size: 2rem;
+    }
+
+    .poster-img {
+      height: 200px;
+    }
+
+    .cast-card, .crew-card {
+      min-width: 120px;
+      width: 120px;
+    }
+
+    .cast-img, .crew-img {
+      height: 150px;
+    }
+  }
+
+  @media (max-width: 576px) {
+    .movie-title {
+      font-size: 1.8rem;
+    }
+
+    .section-header {
+      font-size: 1.5rem;
+    }
+
+    .poster-img {
+      height: 180px;
+    }
+
+    .cast-card, .crew-card {
+      min-width: 100px;
+      width: 100px;
+    }
+
+    .cast-img, .crew-img {
+      height: 130px;
+    }
+
+    .cast-info, .crew-info {
+      padding: 0.5rem;
+      min-height: 70px;
+    }
+
+    .cast-name, .crew-name {
+      font-size: 0.9rem;
+    }
+
+    .cast-character, .crew-job {
+      font-size: 0.8rem;
+    }
+  }
+  /* Similar movies scroller */
+.similar-scroller {
+  display: flex;
+  overflow-x: auto;
+  gap: 1rem;
+  padding-bottom: 1rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent-color) var(--bg-color);
+}
+
+.similar-scroller::-webkit-scrollbar {
+  height: 8px;
+}
+
+.similar-scroller::-webkit-scrollbar-track {
+  background: var(--bg-color);
+}
+
+.similar-scroller::-webkit-scrollbar-thumb {
+  background-color: var(--accent-color);
+  border-radius: 20px;
+}
+
+.similar-card {
+  min-width: 150px;
+  width: 150px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .similar-card {
+    min-width: 120px;
+    width: 120px;
+  }
+}
+
+@media (max-width: 576px) {
+  .similar-card {
+    min-width: 100px;
+    width: 100px;
+  }
+}
+
+ .streaming-section {
+    margin-bottom: 2rem;
+  }
+  
+  #showStreamingBtn {
+    background-color: var(--accent-color);
+    padding: 0.5rem 1.5rem;
+    font-weight: 600;
+  }
+  
+  .providers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .provider-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    color: var(--text-color);
+    transition: transform 0.2s;
+  }
+  
+  .provider-card:hover {
+    transform: scale(1.05);
+  }
+  
+  .provider-logo {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    aspect-ratio: 1/1;
+    object-fit: contain;
+    background: var(--card-bg);
+    padding: 0.5rem;
+  }
+  
+  .provider-name {
+    text-align: center;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+  }
+  
+  .region-info {
+    text-align: right;
+    color: var(--secondary-color);
+    margin-top: 1rem;
+  }
+  
+  .no-providers {
+    padding: 1rem;
+    text-align: center;
+    background-color: var(--card-bg);
+    border-radius: 8px;
+  }
+  
+  .ott-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 15px;
+  }
+  
+  .btn-ott {
+    color: white;
+    padding: 8px 15px;
+    border-radius: 4px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: transform 0.2s;
+  }
+  
+  .btn-ott:hover {
+    transform: translateY(-2px);
+    color: white;
+  }
+  
+  .hotstar { background-color: #113CCF; }
+  .prime { background-color: #00A8E1; }
+  .netflix { background-color: #E50914; }
+  .zee5 { background-color: #FF0000; }
+
+</style>
+
+{% endblock %}
+

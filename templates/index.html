@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="genre-browse-container">
+    <!-- Movies by Genre -->
+    <section class="movies-section">
+        <h2 class="section-title">Movies by Genre</h2>
+        
+        {% for genre_name, movies in movie_genres.items() %}
+        <div class="genre-row">
+            <h3 class="genre-title">{{ genre_name }}</h3>
+            <div class="scrolling-row">
+                {% for movie in movies %}
+                {% set default_tv = url_for('static', filename='images/default-tv.png') %}
+                <div class="content-card">
+                    <a href="{{ url_for('movie_detail', movie_id=movie.id) }}">
+                        <img src="{{ img_url }}{{ movie.poster_path }}" 
+                             alt="{{ movie.title }}"
+                             class="poster-image"
+                             onerror="this.src='{{ default_tv }}'">
+                        <div class="content-title">{{ movie.title }}</div>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </section>
+    
+    <!-- TV Shows by Genre -->
+    <section class="tv-section">
+        <h2 class="section-title">TV Shows by Genre</h2>
+        
+        {% for genre_name, tv_shows in tv_genres.items() %}
+        <div class="genre-row">
+            <h3 class="genre-title">{{ genre_name }}</h3>
+            <div class="scrolling-row">
+                {% for tv in tv_shows %}
+                {% set default_tv = url_for('static', filename='images/default-tv.png') %}
+                <div class="content-card">
+                    <a href="{{ url_for('tv_detail', tv_id=tv.id) }}">
+                        <img src="{{ img_url }}{{ tv.poster_path }}" 
+                             alt="{{ tv.name }}"
+                             class="poster-image"
+                             onerror="this.src='{{ default_tv }}'">
+                        <div class="content-title">{{ tv.name }}</div>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </section>
+</div>
+
+
+  
+<style>
+    .genre-browse-container {
+        padding: 20px;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+    
+    .section-title {
+        font-size: 1.8rem;
+        margin: 30px 0 15px;
+        color: var(--text-color);
+        border-left: 4px solid #e50914;
+        padding-left: 10px;
+    }
+    
+    .genre-row {
+        margin-bottom: 30px;
+    }
+    
+    .genre-title {
+        font-size: 1.4rem;
+        margin: 20px 0 10px;
+        color: var(--text-color);
+    }
+    
+    .scrolling-row {
+        display: flex;
+        overflow-x: auto;
+        gap: 15px;
+        padding: 10px 0;
+        scrollbar-width: thin;
+    }
+    
+    .scrolling-row::-webkit-scrollbar {
+        height: 8px;
+    }
+    
+    .scrolling-row::-webkit-scrollbar-track {
+        background: var(--scrollbar-track);
+    }
+    
+    .scrolling-row::-webkit-scrollbar-thumb {
+        background-color: var(--scrollbar-thumb);
+        border-radius: 20px;
+    }
+    
+    .content-card {
+        flex: 0 0 auto;
+        width: 150px;
+        transition: transform 0.3s ease;
+    }
+    
+    .content-card:hover {
+        transform: scale(1.05);
+    }
+    
+    .poster-image {
+        width: 100%;
+        border-radius: 8px;
+        aspect-ratio: 2/3;
+        object-fit: cover;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    
+    .content-title {
+        margin-top: 8px;
+        font-size: 0.9rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        color: var(--text-color);
+    }
+    
+    @media (max-width: 768px) {
+        .content-card {
+            width: 120px;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+        }
+        
+        .genre-title {
+            font-size: 1.2rem;
+        }
+    }
+</style>
+{% endblock %}

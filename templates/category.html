@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="category-container">
+    <h1 class="category-header">{{ title }}</h1>
+    
+    <div class="content-grid">
+        {% for item in items %}
+        {% set default_image = url_for('static', filename='images/default-' + ('movie' if item_type == 'movie' else 'tv') + '.png') %}
+        <div class="content-item">
+            <a href="{{ url_for('movie_detail', movie_id=item.id) if item_type == 'movie' else url_for('tv_detail', tv_id=item.id) }}">
+                <img src="{{ img_url }}{{ item.poster_path }}" 
+                     class="poster-image"
+                     alt="{{ item.title if item_type == 'movie' else item.name }}"
+                     onerror="this.src='{{ default_image }}'">
+                <div class="content-info">
+                    <h3 class="content-title">{{ item.title if item_type == 'movie' else item.name }}</h3>
+                    <div class="content-meta">
+                        {% if item_type == 'movie' and item.release_date %}
+                        <span class="content-year">{{ item.release_date[:4] }}</span>
+                        {% elif item_type == 'tv' and item.first_air_date %}
+                        <span class="content-year">{{ item.first_air_date[:4] }}</span>
+                        {% endif %}
+                        <span class="content-rating">
+                            <i class="fas fa-star"></i> {{ item.vote_average|round(1) }}
+                        </span>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    .category-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .category-header {
+        font-size: 2rem;
+        margin-bottom: 30px;
+        color: var(--text-color);
+        border-left: 4px solid #e50914;
+        padding-left: 15px;
+    }
+    
+    .content-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 25px;
+    }
+    
+    .content-item {
+        transition: transform 0.3s ease;
+    }
+    
+    .content-item:hover {
+        transform: translateY(-5px);
+    }
+    
+    .poster-image {
+        width: 100%;
+        border-radius: 8px;
+        aspect-ratio: 2/3;
+        object-fit: cover;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    
+    .content-info {
+        margin-top: 10px;
+    }
+    
+    .content-title {
+        font-size: 1rem;
+        font-weight: 500;
+        color: var(--text-color);
+        margin: 5px 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .content-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.85rem;
+        color: var(--secondary-text);
+    }
+    
+    .content-rating {
+        color: #e50914;
+        font-weight: 500;
+    }
+    
+    .content-rating i {
+        margin-right: 3px;
+    }
+    
+    @media (max-width: 1024px) {
+        .content-grid {
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 20px;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .content-grid {
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+        }
+        
+        .category-header {
+            font-size: 1.7rem;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .content-grid {
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+        }
+        
+        .content-title {
+            font-size: 0.9rem;
+        }
+        
+        .content-meta {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 3px;
+        }
+    }
+</style>
+{% endblock %}

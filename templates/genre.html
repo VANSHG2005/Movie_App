@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="category-container">
+    <div class="genre-header">
+        <h1 class="category-header">{{ genre_name }} Content</h1>
+        <p class="genre-description">Explore popular {{ genre_name }} movies and TV shows</p>
+    </div>
+    
+    <h2 class="section-title">{{ genre_name }} Movies</h2>
+    <div class="scrolling-wrapper">
+        {% for movie in movies %}
+        {% set default_image = url_for('static', filename='images/default-movie.png') %}
+        <div class="scrolling-card">
+            <a href="{{ url_for('movie_detail', movie_id=movie.id) }}">
+                <img src="https://image.tmdb.org/t/p/w500{{ movie.poster_path }}" 
+                     class="poster-image"
+                     alt="{{ movie.title }}"
+                     onerror="this.src='{{ default_image }}'">
+                <div class="content-info">
+                    <h3 class="content-title">{{ movie.title }}</h3>
+                    <div class="content-meta">
+                        {% if movie.release_date %}
+                        <span class="content-year">{{ movie.release_date[:4] }}</span>
+                        {% endif %}
+                        <span class="content-rating">
+                            <i class="fas fa-star"></i> {{ movie.vote_average|round(1) if movie.vote_average else 'N/A' }}
+                        </span>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <h2 class="section-title">{{ genre_name }} TV Shows</h2>
+    <div class="scrolling-wrapper">
+        {% for tv in tv_shows %}
+        {% set default_image = url_for('static', filename='images/default-tv.png') %}
+        <div class="scrolling-card">
+            <a href="{{ url_for('tv_detail', tv_id=tv.id) }}">
+                <img src="https://image.tmdb.org/t/p/w500{{ tv.poster_path }}" 
+                     class="poster-image"
+                     alt="{{ tv.name }}"
+                     onerror="this.src='{{ default_image }}'">
+                <div class="content-info">
+                    <h3 class="content-title">{{ tv.name }}</h3>
+                    <div class="content-meta">
+                        {% if tv.first_air_date %}
+                        <span class="content-year">{{ tv.first_air_date[:4] }}</span>
+                        {% endif %}
+                        <span class="content-rating">
+                            <i class="fas fa-star"></i> {{ tv.vote_average|round(1) if tv.vote_average else 'N/A' }}
+                        </span>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    .category-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .genre-header {
+        margin-bottom: 30px;
+    }
+    
+    .category-header {
+        font-size: 2rem;
+        color: var(--text-color);
+        border-left: 4px solid #e50914;
+        padding-left: 15px;
+        margin-bottom: 10px;
+    }
+    
+    .genre-description {
+        font-size: 1.1rem;
+        color: var(--secondary-text);
+        margin-left: 19px;
+    }
+    
+    .section-title {
+        font-size: 1.5rem;
+        margin: 30px 0 20px 0;
+        color: var(--text-color);
+        padding-left: 15px;
+        border-left: 3px solid #e50914;
+    }
+    
+    .scrolling-wrapper {
+        display: flex;
+        overflow-x: auto;
+        padding: 20px 0;
+        gap: 20px;
+        scrollbar-width: thin;
+        scrollbar-color: #e50914 transparent;
+    }
+    
+    .scrolling-wrapper::-webkit-scrollbar {
+        height: 8px;
+    }
+    
+    .scrolling-wrapper::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    
+    .scrolling-wrapper::-webkit-scrollbar-thumb {
+        background-color: #e50914;
+        border-radius: 20px;
+    }
+    
+    .scrolling-card {
+        flex: 0 0 auto;
+        width: 200px;
+        transition: transform 0.3s ease;
+    }
+    
+    .scrolling-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .poster-image {
+        width: 100%;
+        border-radius: 8px;
+        aspect-ratio: 2/3;
+        object-fit: cover;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    
+    .content-info {
+        margin-top: 10px;
+    }
+    
+    .content-title {
+        font-size: 1rem;
+        font-weight: 500;
+        color: var(--text-color);
+        margin: 5px 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .content-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.85rem;
+        color: var(--secondary-text);
+    }
+    
+    .content-rating {
+        color: #e50914;
+        font-weight: 500;
+    }
+    
+    .content-rating i {
+        margin-right: 3px;
+    }
+    
+    @media (max-width: 768px) {
+        .scrolling-card {
+            width: 160px;
+        }
+        
+        .category-header {
+            font-size: 1.7rem;
+        }
+        
+        .section-title {
+            font-size: 1.3rem;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .scrolling-card {
+            width: 140px;
+        }
+        
+        .content-title {
+            font-size: 0.9rem;
+        }
+        
+        .content-meta {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 3px;
+        }
+    }
+</style>
+{% endblock %}

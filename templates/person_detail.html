@@ -1,0 +1,248 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{% set default_image = url_for('static', filename='images/default-' + ('movie' if item_type == 'movie' else 'tv') + '.png') %}
+<div class="cast-detail-container">
+  <div class="cast-header">
+    <div class="cast-photo">
+      <img src="{{ img_url }}{{ cast.profile_path }}" alt="{{ cast.name }}" 
+           onerror="this.src='{{ default_image }}'">
+    </div>
+    <div class="cast-info">
+      <h1>{{ cast.name }}</h1>
+      <h2>Biography</h2>
+      <p>{{ cast.biography or 'Biography not available' }}</p>
+      
+      <!-- Known For Section - Filtered to exclude talk shows -->
+  <div class="known-for">
+    <h3>Known For</h3>
+    <div class="known-for-grid">
+      {% for movie in cast.known_for %}
+        {% if movie.media_type != 'tv' or 
+              not movie.title and not movie.name or
+              'show' not in (movie.title or movie.name or '').lower() and
+              'live' not in (movie.title or movie.name or '').lower() and
+              'tonight' not in (movie.title or movie.name or '').lower() %}
+          <div class="known-for-item">
+            <a href="{{ url_for('movie_detail', movie_id=movie.id) if movie.media_type == 'movie' else url_for('tv_detail', tv_id=movie.id) }}">
+              <img src="{{ img_url }}{{ movie.poster_path }}" alt="{{ movie.title or movie.name }}" 
+                   onerror="this.src='{{ default_image }}'">
+              <p>{{ movie.title or movie.name }}</p>
+            </a>
+          </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="cast-details">
+    <div class="personal-info">
+      <h3>Personal Info</h3>
+      <div class="info-grid">
+        <div class="info-item">
+          <strong>Known For</strong>
+          <span>{{ cast.known_for_department or 'N/A' }}</span>
+        </div>
+        <div class="info-item">
+          <strong>Known Credits</strong>
+          <span>{{ cast.combined_credits|length or 'N/A' }}</span>
+        </div>
+        <div class="info-item">
+          <strong>Gender</strong>
+          <span>{{ 'Female' if cast.gender == 1 else 'Male' if cast.gender == 2 else 'N/A' }}</span>
+        </div>
+        <div class="info-item">
+          <strong>Birthday</strong>
+          <span>{{ cast.birthday or 'N/A' }}{% if cast.birthday %} ({{ calculate_age(cast.birthday) }} years old){% endif %}</span>
+        </div>
+        <div class="info-item">
+          <strong>Place of Birth</strong>
+          <span>{{ cast.place_of_birth or 'N/A' }}</span>
+        </div>
+        <div class="info-item">
+          <strong>Also Known As</strong>
+          <span>{{ cast.also_known_as|join(', ') if cast.also_known_as else 'N/A' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Acting Credits Section - Sorted by year -->
+  <div class="acting-credits">
+    <h3>Acting</h3>
+    <div class="credits-list">
+      {% for credit in cast.combined_credits.cast|sort(attribute=
+          'release_date' if 'release_date' in credit and credit.release_date else
+          'first_air_date' if 'first_air_date' in credit and credit.first_air_date else
+          '0000-00-00', reverse=True) %}
+        <div class="credit-item">
+          <div class="credit-year">
+            {% if 'release_date' in credit and credit.release_date %}
+              {{ credit.release_date[:4] }}
+            {% elif 'first_air_date' in credit and credit.first_air_date %}
+              {{ credit.first_air_date[:4] }}
+            {% else %}
+              N/A
+            {% endif %}
+          </div>
+          <div class="credit-details">
+            <strong>{{ credit.title or credit.name }}</strong>
+            {% if credit.character %}<span>as {{ credit.character }}</span>{% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  </div>
+</div>
+
+<style>
+  .cast-detail-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    color: var(--text-color);
+  }
+
+  .cast-header {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 40px;
+  }
+
+  .cast-photo img {
+    width: 300px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  }
+
+  .cast-info {
+    flex: 1;
+  }
+
+  .cast-info h1 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    color: var(--text-color);
+  }
+
+  .cast-info h2 {
+    font-size: 1.8rem;
+    margin: 20px 0 10px;
+    color: var(--text-color);
+  }
+
+  .known-for h3 {
+    font-size: 1.5rem;
+    margin: 30px 0 15px;
+    color: var(--text-color);
+  }
+
+   .known-for-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 15px;
+  }
+
+  .known-for-item img {
+    width: 100%;
+    border-radius: 5px;
+    transition: transform 0.3s ease;
+  }
+
+  .known-for-item img:hover {
+    transform: scale(1.05);
+  }
+
+  .known-for-item p {
+    margin-top: 5px;
+    font-size: 0.9rem;
+    text-align: center;
+  }
+
+  .cast-details {
+    display: flex;
+    gap: 40px;
+  }
+
+  .personal-info, .acting-credits {
+    flex: 1;
+  }
+
+  .personal-info h3, .acting-credits h3 {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--accent-color);
+    color: var(--text-color);
+  }
+
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+  }
+
+  .info-item {
+    margin-bottom: 15px;
+  }
+
+  .info-item strong {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: var(--text-color);
+  }
+
+  .credits-list {
+    max-height: 600px;
+    overflow-y: auto;
+    padding-right: 10px;
+  }
+
+  .credit-item {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+  }
+
+  .credit-year {
+    min-width: 60px;
+    font-weight: 600;
+    color: var(--text-color);
+  }
+
+  .credit-details {
+    flex: 1;
+  }
+
+  .credit-details span {
+    display: block;
+    font-size: 0.9rem;
+    color: var(--secondary-text);
+    margin-top: 3px;
+  }
+
+  @media (max-width: 768px) {
+    .cast-header {
+      flex-direction: column;
+    }
+
+    .cast-photo img {
+      width: 100%;
+      max-width: 300px;
+      margin: 0 auto;
+    }
+
+    .cast-details {
+      flex-direction: column;
+    }
+
+    .info-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}

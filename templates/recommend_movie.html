@@ -1,0 +1,212 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="recommendations-container">
+    <h1 class="recommendations-title">
+        Recommended Movies Similar to <span class="movie-title">"{{ name }}"</span>
+    </h1>
+
+    <div class="row">
+        {# Show the searched item first #}
+        {% if searched_item %}
+        <div class="searched-movie-col">
+            <div class="searched-movie-card">
+                <div class="poster-container">
+                    <a href="{{ url_for(content_type + '_detail', movie_id=searched_item.id) }}">
+                        <img src="{{ img_url }}{{ searched_item.poster_path }}" 
+                             class="searched-poster" 
+                             onerror="this.src='https://via.placeholder.com/300x450?text=Poster+Not+Available'">
+                    </a>
+                </div>
+                <div class="movie-info">
+                    <h2>{{ searched_item.title if content_type == 'movie' else searched_item.name }}</h2>
+                    <a href="{{ url_for(content_type + '_detail', movie_id=searched_item.id) }}" 
+                       class="view-details-btn">
+                        View Details
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {# Show the recommendations #}
+        <div class="recommendations-grid">
+            {% for rec in recs %}
+            <div class="recommendation-card">
+                <a href="{{ url_for(content_type + '_detail', movie_id=rec.id) }}">
+                    <img src="{{ img_url }}{{ rec.poster_path }}" 
+                         class="recommendation-poster" 
+                         onerror="this.src='https://via.placeholder.com/200x300?text=Poster+Not+Available'">
+                </a>
+                <div class="recommendation-info">
+                    <h3>{{ rec.title if content_type == 'movie' else rec.name }}</h3>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<style>
+    :root {
+        --bg-color: #ffffff;
+        --text-color: #333333;
+        --accent-color: #e63946;
+        --card-bg: #ffffff;
+        --card-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        --hover-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        --btn-bg: #e63946;
+        --btn-text: #ffffff;
+    }
+
+    [data-theme="dark"] {
+        --bg-color: #121212;
+        --text-color: #f5f5f5;
+        --accent-color: #ff6b6b;
+        --card-bg: #1e1e1e;
+        --card-shadow: 0 3px 10px rgba(0,0,0,0.3);
+        --hover-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        --btn-bg: #ff6b6b;
+        --btn-text: #121212;
+    }
+
+    .recommendations-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+    }
+
+    .recommendations-title {
+        text-align: center;
+        margin-bottom: 30px;
+        font-size: 2.5rem;
+        font-weight: 600;
+    }
+
+    .movie-title {
+        color: var(--accent-color);
+    }
+
+    .row {
+        display: flex;
+        flex-wrap: wrap;
+        margin: -15px;
+    }
+
+    .searched-movie-col {
+        flex: 0 0 100%;
+        max-width: 100%;
+        padding: 15px;
+        margin-bottom: 30px;
+    }
+
+    .searched-movie-card {
+        background: var(--card-bg);
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: var(--card-shadow);
+        display: flex;
+        align-items: center;
+    }
+
+    .poster-container {
+        flex: 0 0 300px;
+    }
+
+    .searched-poster, .recommendation-poster {
+        width: 100%;
+        height: auto;
+        display: block;
+    }
+
+    .searched-poster {
+        aspect-ratio: 2/3;
+    }
+
+    .movie-info {
+        padding: 20px;
+        flex: 1;
+    }
+
+    .movie-info h2 {
+        margin-top: 0;
+        font-size: 2rem;
+        color: var(--text-color);
+    }
+
+    .view-details-btn {
+        display: inline-block;
+        padding: 10px 20px;
+        background: var(--btn-bg);
+        color: var(--btn-text);
+        text-decoration: none;
+        border-radius: 5px;
+        font-weight: bold;
+        margin-top: 15px;
+        transition: all 0.3s ease;
+    }
+
+    .view-details-btn:hover {
+        opacity: 0.9;
+        transform: translateY(-2px);
+    }
+
+    .recommendations-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 20px;
+        width: 100%;
+    }
+
+    .recommendation-card {
+        background: var(--card-bg);
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: var(--card-shadow);
+        transition: all 0.3s ease;
+    }
+
+    .recommendation-poster {
+        aspect-ratio: 2/3;
+        object-fit: cover;
+    }
+
+    .recommendation-info {
+        padding: 15px;
+    }
+
+    .recommendation-info h3 {
+        margin: 0;
+        font-size: 1rem;
+        text-align: center;
+        color: var(--text-color);
+    }
+
+    .recommendation-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--hover-shadow);
+    }
+    
+    @media (max-width: 768px) {
+        .searched-movie-card {
+            flex-direction: column;
+        }
+        
+        .poster-container {
+            flex: 0 0 100% !important;
+        }
+        
+        .recommendations-grid {
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .recommendations-title {
+            font-size: 2rem;
+        }
+    }
+</style>
+
+{% endblock %}
