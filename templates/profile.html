@@ -49,7 +49,6 @@
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Theme toggle functionality
     const themeToggle = document.getElementById('toggle-theme');
     const currentTheme = document.getElementById('current-theme');
     
@@ -68,7 +67,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Initialize theme display
     const savedTheme = localStorage.getItem('theme') || 'light';
     currentTheme.textContent = savedTheme === 'dark' ? 'Dark' : 'Light';
 });

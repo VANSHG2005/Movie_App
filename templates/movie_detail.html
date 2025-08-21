@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="movie-detail-container">
-  <!-- Hero Section with Backdrop -->
+
   <div class="movie-hero" style="background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('{{ img_url }}{{ movie.details.backdrop_path }}');">
     <div class="container">
       <div class="row">
@@ -38,7 +38,6 @@
             </button>
             {% endif %}
 
-            <!-- In movie_detail.html, inside the action-buttons div -->
             {% if current_user.is_authenticated %}
             <button class="btn btn-watchlist" onclick="addToWatchlist('{{movie.details.id }}', 'movie', '{{ movie.details.title }}', '{{ movie.details.poster_path }}')">
               <i class="fas fa-bookmark"></i> Add to Watchlist
@@ -202,7 +201,6 @@
 </div>
 {% endif %}
 
-    <!-- Trailer Modal -->
     {% if movie.trailer_key %}
     <div class="modal fade" id="trailerModal" tabindex="-1" aria-labelledby="trailerModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered modal-lg">

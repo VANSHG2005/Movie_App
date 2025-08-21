@@ -66,7 +66,7 @@ function removeFromWatchlist(button) {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                watchlist_item_id: itemId  // Changed from item_id to watchlist_item_id
+                watchlist_item_id: itemId 
             })
         })
         .then(response => {
@@ -75,16 +75,13 @@ function removeFromWatchlist(button) {
         })
         .then(data => {
             if (data.success) {
-                // Show toast notification
                 const toast = new bootstrap.Toast(document.getElementById('watchlistToast'));
                 document.getElementById('toastMessage').textContent = 'Item removed successfully';
                 toast.show();
                 
-                // Remove item from DOM after delay
                 setTimeout(() => {
                     button.closest('.col-md-3').remove();
                     
-                    // Reload if last item
                     if (document.querySelectorAll('.watchlist-card').length === 0) {
                         location.reload();
                     }
@@ -181,7 +178,6 @@ function removeFromWatchlist(button) {
     }
 }
 
-/* Alternative if not using Bootstrap's dark mode */
 .toast {
     background-color: var(--toast-bg, #fff) !important;
     color: var(--toast-color, #000) !important;
@@ -193,7 +189,6 @@ function removeFromWatchlist(button) {
     border-bottom-color: var(--toast-border, #dee2e6) !important;
 }
 
-/* Then in your dark theme CSS */
 [data-bs-theme="dark"] .toast {
     --toast-bg: #000;
     --toast-color: #fff;

@@ -38,7 +38,6 @@
             </button>
             {% endif %}
             
-            <!-- In tv_detail.html, inside the action-buttons div -->
             {% if current_user.is_authenticated %}
             <button class="btn btn-watchlist" onclick="addToWatchlist('{{tv.show.id }}' , 'tv', '{{ tv.show.name }}', '{{ tv.show.poster_path }}')">
               <i class="fas fa-bookmark"></i> Add to Watchlist
@@ -79,7 +78,7 @@
       <h2 class="section-header">Top Billed Cast</h2>
       <div class="cast-scroller">
         {% for actor in tv.cast %}
-        {% if actor.id %}  <!-- Only show if actor has an ID -->
+        {% if actor.id %}
         <a href="{{ url_for('person_detail', person_id=actor.id) }}" class="cast-card-link">
           <div class="cast-card">
             {% if actor.profile_path %}
@@ -105,7 +104,7 @@
       <h2 class="section-header">Key Crew</h2>
       <div class="crew-scroller">
         {% for member in tv.crew %}
-        {% if member.id %}  <!-- Only show if crew member has an ID -->
+        {% if member.id %}
         <a href="{{ url_for('person_detail', person_id=member.id) }}" class="crew-card-link">
           <div class="crew-card">
             {% if member.profile_path %}
@@ -208,7 +207,6 @@
     </div>
     {% endif %} -->
 
-    <!-- ML-based Recommendations Section -->
 {% if tv.ml_recommendations %}
 <div class="similar-shows">
   <h2 class="section-header">Similar TV Shows</h2>
@@ -276,19 +274,17 @@
     --btn-trailer-hover: #ff6b81;
   }
 
-  /* Base styles */
   .movie-detail-container {
     color: var(--text-color);
     background-color: var(--bg-color);
     min-height: 100vh;
   }
 
-  /* Hero section */
   .movie-hero {
     padding: 3rem 0;
     background-size: cover;
     background-position: center;
-    color: white; /* Keep text white on dark background */
+    color: white;
   }
 
   .movie-poster {
@@ -310,7 +306,7 @@
     font-size: 2.5rem;
     font-weight: 700;
     margin-bottom: 0.5rem;
-    color: white; /* Keep title white on dark background */
+    color: white;
   }
 
   .release-year {
@@ -327,7 +323,6 @@
     margin: 0 0.5rem;
   }
 
-  /* User score */
   .user-score {
     display: flex;
     align-items: center;
@@ -370,7 +365,6 @@
     color: white;
   }
 
-  /* Sections */
   .section-header {
     font-size: 1.8rem;
     margin-bottom: 1.5rem;
@@ -379,7 +373,6 @@
     color: var(--text-color);
   }
 
-  /* Cast and crew scrollers */
   .cast-scroller, .crew-scroller {
     display: flex;
     overflow-x: auto;
@@ -402,7 +395,6 @@
     border-radius: 20px;
   }
 
-  /* Cards */
   .cast-card, .crew-card {
     min-width: 140px;
     background: var(--card-bg);
@@ -438,13 +430,11 @@
     color: var(--secondary-color);
   }
 
-  /* Card links */
   .cast-card-link, .crew-card-link {
     text-decoration: none;
     color: inherit;
   }
 
-  /* Trailer button */
   .btn-trailer {
     background-color: var(--btn-trailer-bg);
     color: white;
@@ -462,7 +452,6 @@
     transform: translateY(-2px);
   }
 
-  /* Related movies */
   .related-movies {
     margin: 3rem 0;
   }
@@ -496,7 +485,6 @@
     font-weight: 500;
   }
 
-  /* Modal styles */
   .modal-content {
     background-color: var(--modal-bg) !important;
     color: var(--text-color);
@@ -519,7 +507,6 @@
     filter: invert(1);
   }
 
-  /* Responsive adjustments */
   @media (max-width: 768px) {
     .movie-hero {
       padding: 2rem 0;
@@ -553,7 +540,6 @@
     }
   }
 
- /* Similar TV Shows Section */
 .similar-shows {
   margin: 3rem 0;
 }
@@ -641,7 +627,7 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-height: 3.6em; /* line-height × number of lines */
+  max-height: 3.6em; 
   line-height: 1.2em;
 }
 
@@ -660,7 +646,6 @@
   text-overflow: ellipsis;
 }
 
-/* Responsive adjustments */
 @media (max-width: 768px) {
   .similar-card {
     min-width: 130px;
